@@ -76,10 +76,10 @@ const Page3 = ({
 
             console.log(generatedDesc);
 
-            let desc = generatedDesc.data.choices[0].text;
-            desc = desc?.substring(2, desc.length);
+            // let desc = generatedDesc.data.choices[0].text;
+            // desc = desc?.substring(2, desc.length);
 
-            setDescription(desc);
+            setDescription(generatedDesc);
           }
         }}
         className="text-lg cursor-pointer text-accent2 hover:underline"
@@ -145,10 +145,12 @@ const Page3 = ({
                   console.log("url", imageUrl);
 
                   const url = "http://127.0.0.1:5000/addInitiative";
+                  const email = localStorage.getItem("email");
+                  const name = localStorage.getItem("name");
 
                   const body = {
-                    name: "Pranav",
-                    email: "pranav@a.com",
+                    name: name,
+                    email: email,
                     title: title,
                     description: description,
                     donationGoal: donationGoal,
@@ -160,6 +162,8 @@ const Page3 = ({
                     image: imageUrl,
                     website: "",
                   };
+
+                  console.log(body);
 
                   const res = await axios.post(url, {
                     method: "POST",

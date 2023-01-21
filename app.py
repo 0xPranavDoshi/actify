@@ -3,19 +3,54 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import cross_origin
 import json
 import certifi
-from bson import json_util
-from bson.json_util import dumps
-from bson.json_util import loads
 from pymongo import MongoClient
 import os
 import openai
-openai.api_key = "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"
+from bson import json_util
+from bson.json_util import dumps
+from bson.json_util import loads
+
+openai.api_key = "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"
 
 app = Flask(__name__)
 client = MongoClient('mongodb+srv://Actify:Act1fy@cluster0.u87uqzy.mongodb.net/test', tlsCAFile=certifi.where())
 db = client["Main"]
 orgCollection = db["Organisations"]
 initiativeCollection = db["Initiatives"]
+
+def filterInitiatives(filterBy,filterFor):
+    cursor = initiativeCollection.find({filterBy:filterFor})
+    return json_util.dumps(cursor)
+
+def recommendInitiatives(message): 
+    response = openai.Completion.create(
+    model="text-davinci-003",
+    prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
+    temperature=0.7,
+    max_tokens=256,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+    tags = response["choices"][0]["text"].split(",")
+    initiativesList = []
+    rankingList = []
+
+    for tag in tags: 
+        initiatives = filterInitiatives("tags",tag)
+        print(initiatives)
+        for initiative in initiatives: 
+            print(initiative)
+            if initiative["title"] not in initiativesList:
+                initiativesList.append(initiative["title"])
+                rankingList.append(1)
+            else: 
+                rankingList[initiativesList.index(initiative)] +=1 
+    
+    for (initiative,ranking) in zip(initiativesList,rankingList):
+        print(initiative," ",ranking)
+
+# recommendInitiatives("I am interested in protecting dogs, and other animals, like cats. I also like helping empower women from rural communities")
 
 def updatePetition(title):
     initiativeCollection.update_one({"title":title},{"$inc":{"petitionVotes":1}})
@@ -24,28 +59,22 @@ def updatePetition(title):
 
 def getInitiatives():
     cursor = initiativeCollection.find({})
-    # documentArr = []
-    # for document in cursor:
-    #     documentArr.append(document)
-    #     print(document)
-    # convert mongodb cursor to json
     return json_util.dumps(cursor)
-
 
 def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
     inserting = orgCollection.insert_one(insertDict)
 
-def insertInitiative(name,email,title,description,donationGoal,donationAmount,location,petitionVotes,physicalProducts,image,website):
+def insertInitiative(name,email,title,description,donationGoal,donationAmount,location,tags,petitionVotes,physicalProducts,image,website):
     print(name)
-    insertDict = {"name":name,"email":email,"title":title,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
+    insertDict = {"name":name,"email":email,"title":title,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
     print(insertDict)
     initiativeCollection.insert_one(insertDict)
 
 def createDescription(name,location,needs):
     response = openai.Completion.create(
         model="text-davinci-003",
-        prompt="Write an appeal for an initiative called {}, located in {}, that needs{}".format(name,location,needs)
+        prompt="Write an appeal for an initiative called {}, located in {}, that needs{}".format(name,location,needs),
         temperature=0.7,
         max_tokens=256,
         top_p=1,
@@ -53,10 +82,12 @@ def createDescription(name,location,needs):
         presence_penalty=0
     )
     return response["choices"][0]["text"]
+
+
 #[feasability,technology,implementation, innovation, problem statement ]
 
 @app.route('/signUp', methods=["GET", "POST"])
-@cross_origin()
+# @cross_origin()
 def signUp():
     if request.method == "POST":
         try:
@@ -80,7 +111,7 @@ def addInitiative():
             json_data = json.loads(x["body"])
             print(json_data["name"])
             
-            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
+            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["tags"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
             return ("InitiatveAdded Added")
         except Exception as e:
             print(e)
@@ -90,9 +121,27 @@ def addInitiative():
 @app.route('/fetchInitiatives', methods = ["GET"])
 @cross_origin()
 def fetchInitiatives():
-    cursor = getInitiatives()
-    print(cursor)
-    return cursor
+    try: 
+        cursor = getInitiatives()
+        return (cursor)
+    except Exception as e:
+        print(e)
+
+@app.route('/filter',methods = ["GET","POST"])
+@cross_origin()
+def filterInitiatives():
+    if request.method == "POST":
+        try:
+            x = json.loads(request.data)
+            json_data = json.loads(x['body'])
+
+            filterBy = json_data["filterBy"]
+            filterFor = json_data["filterFor"]
+            
+            cursor = initiativeCollection.find({filterBy:filterFor})
+            return json_util.dumps(cursor)
+        except Exception as e:
+            print(e)
         
 @app.route('/generateDescription',methods = ["GET","POST"])
 @cross_origin()
@@ -120,8 +169,3 @@ def updatePetitionVotes():
 
 if __name__ == '__main__':
     app.run()
-
-
-
-
-
