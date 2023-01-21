@@ -16,7 +16,7 @@ const Register = () => {
         {/* form to register user asking for name, email, password */}
         <div className="flex flex-col w-3/4">
           <label htmlFor="name" className="text-white">
-            Name
+            Organization
           </label>
           <input
             type="text"
