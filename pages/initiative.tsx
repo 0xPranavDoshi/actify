@@ -26,11 +26,11 @@ const CreateInitiative = () => {
   const [city, setCity] = useState<string>();
 
   const [donationGoal, setDonationGoal] = useState<number>();
+  const [donationAmount, setDonationAmount] = useState<number>();
   const [physicalNeeds, setPhysicalNeeds] = useState<string[]>();
 
   const [title, setTitle] = useState<string>();
   const [description, setDescription] = useState<string>();
-  const [initiative, setInitiative] = useState<InitiativeProps>();
 
   return (
     <div className="flex flex-col w-screen h-screen bg-background justify-start items-center">
@@ -52,6 +52,8 @@ const CreateInitiative = () => {
             setPhysicalNeeds={setPhysicalNeeds}
             donationGoal={donationGoal}
             setDonationGoal={setDonationGoal}
+            donationAmount={donationAmount}
+            setDonationAmount={setDonationAmount}
           />
         )}
 
@@ -63,6 +65,9 @@ const CreateInitiative = () => {
             setDescription={setDescription}
             city={city}
             physicalNeeds={physicalNeeds}
+            donationGoal={donationGoal}
+            donationAmount={donationAmount}
+            tagsSelected={tagsSelected}
           />
         )}
       </div>

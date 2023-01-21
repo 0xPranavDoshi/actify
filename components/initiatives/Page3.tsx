@@ -1,6 +1,9 @@
 import { Tags, TagsArray } from "@/enum/tags";
+import { generateDescription } from "@/utils/description";
 import { useRouter } from "next/router";
 import { HiArrowNarrowRight } from "react-icons/hi";
+import { InitiativeProps } from "../InitiativeCard";
+import axios from "axios";
 
 const Page3 = ({
   title,
@@ -9,6 +12,9 @@ const Page3 = ({
   setDescription,
   city,
   physicalNeeds,
+  donationGoal,
+  donationAmount,
+  tagsSelected,
 }: {
   title: string | undefined;
   setTitle: (arg: any) => void;
@@ -16,6 +22,9 @@ const Page3 = ({
   setDescription: (arg: any) => void;
   city: string | undefined;
   physicalNeeds: string[] | undefined;
+  donationGoal: number | undefined;
+  donationAmount: number | undefined;
+  tagsSelected: Tags[] | undefined;
 }) => {
   const router = useRouter();
 
@@ -45,7 +54,25 @@ const Page3 = ({
         className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
       />
 
-      <h5 className="text-lg cursor-pointer text-accent2 hover:underline">
+      <h5
+        onClick={async () => {
+          if (title && city && physicalNeeds && physicalNeeds.length > 0) {
+            const generatedDesc = await generateDescription(
+              title,
+              city,
+              physicalNeeds
+            );
+
+            console.log(generatedDesc);
+
+            let desc = generatedDesc.data.choices[0].text;
+            desc = desc?.substring(2, desc.length);
+
+            setDescription(desc);
+          }
+        }}
+        className="text-lg cursor-pointer text-accent2 hover:underline"
+      >
         Generate description
       </h5>
 
@@ -61,14 +88,60 @@ const Page3 = ({
         </div>
 
         <div
-          onClick={() => {
-            router.query.page = "4";
-            router.push(router);
+          onClick={async () => {
+            if (
+              title &&
+              description &&
+              city &&
+              donationGoal &&
+              donationAmount &&
+              physicalNeeds &&
+              physicalNeeds.length > 0 &&
+              tagsSelected &&
+              tagsSelected.length > 0
+            ) {
+              // const initiative: InitiativeProps = {
+              //   title,
+              //   description,
+              //   city,
+              //   imageSrc: "",
+              //   donationGoal: donationGoal.toString(),
+              //   donationAmount: donationAmount.toString(),
+              //   tags: tagsSelected,
+              //   location: null,
+              //   physicalProducts: physicalNeeds,
+              //   petitionVotes: 0,
+              // };
+
+              const url = "http://127.0.0.1:5000/addInitiative";
+
+              const body = {
+                name: "Pranav",
+                email: "pranav@a.com",
+                title: title,
+                description: description,
+                donationGoal: donationGoal,
+                donationAmount: donationAmount,
+                location: "Mumbai",
+                petitionVotes: 0,
+                physicalProducts: physicalNeeds,
+                image: "",
+                website: "",
+              };
+
+              const res = await axios.post(url, {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: { "Content-Type": "application/json" },
+              });
+
+              const data = await res.data;
+              console.log(data);
+            }
           }}
           className="px-8 gap-2 py-2 bg-accent flex justify-start  items-center rounded-lg cursor-pointer"
         >
-          <p className="text-white">Continue</p>
-          <HiArrowNarrowRight className="text-xl" />
+          <p className="text-white">Submit</p>
         </div>
       </div>
     </>

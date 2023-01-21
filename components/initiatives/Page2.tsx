@@ -8,11 +8,15 @@ const Page2 = ({
   setDonationGoal,
   physicalNeeds,
   setPhysicalNeeds,
+  donationAmount,
+  setDonationAmount,
 }: {
   donationGoal: number | undefined;
   setDonationGoal: (arg: any) => void;
   physicalNeeds: string[] | undefined;
   setPhysicalNeeds: (arg: any) => void;
+  donationAmount: number | undefined;
+  setDonationAmount: (arg: any) => void;
 }) => {
   const router = useRouter();
   return (
@@ -31,6 +35,20 @@ const Page2 = ({
         className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
       />
 
+      <h2 className="font-semibold text-3xl my-8">
+        Enter the amount you've raised so far in rupees.
+      </h2>
+
+      <input
+        type="number"
+        value={donationAmount}
+        onChange={(e) => {
+          setDonationAmount(+e.target.value);
+        }}
+        placeholder="Eg: 100"
+        className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
+      />
+
       <h2 className="font-semibold text-3xl mt-8 mb-4">
         Enter the physical needs of the initiative.
       </h2>
@@ -39,7 +57,7 @@ const Page2 = ({
         type="text"
         value={physicalNeeds}
         onChange={(e) => {
-          setPhysicalNeeds(e.target.value.split(", "));
+          setPhysicalNeeds(e.target.value.split(","));
         }}
         placeholder="Eg: Food, Clothes, etc."
         className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
@@ -58,7 +76,7 @@ const Page2 = ({
 
         <div
           onClick={() => {
-            if (donationGoal && physicalNeeds) {
+            if (donationGoal && physicalNeeds && donationAmount) {
               router.query.page = "3";
               router.push(router);
             }

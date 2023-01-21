@@ -6,6 +6,7 @@ import {
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { firebaseConfig } from "@/config";
+import axios from "axios";
 
 getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
@@ -40,10 +41,30 @@ export const registerUser = (name: string, email: string, password: string) => {
         console.log("Created user:", user);
 
         // Post name to MongoDB
-        res(user);
+        const url = "http://127.0.0.1:5000/signUp";
+
+        const body = {
+          name: name,
+          email: email,
+        };
+
+        try {
+          const result = await axios.post(url, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          const data = await result.data;
+          console.log("Posted name and email", data);
+
+          res(user);
+        } catch (err) {
+          console.log(err);
+          rej(err);
+        }
       })
       .catch((error: any) => {
-        const errorCode = error.code;
         const errorMessage = error.message;
         console.log("Error:", errorMessage);
         rej(errorMessage);
