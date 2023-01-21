@@ -19,14 +19,16 @@ export const generateDescription = async (
       needs: physicalNeeds,
     };
 
+    console.log(body);
+
     const res = await axios.post(url, {
-      //   mode: "no-cors",
+      mode: "no-cors",
       method: "POST",
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
-        // "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        // "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS
+        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS
       },
     });
 

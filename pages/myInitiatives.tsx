@@ -48,7 +48,7 @@ const MyInitiatives = () => {
           donationAmount: obj.donationAmount,
           location: obj.location,
           tags: obj.tags,
-          city: obj.location,
+          city: obj.city,
           petitionVotes: obj.petitionVotes,
           physicalProducts: obj.physicalProducts,
         };

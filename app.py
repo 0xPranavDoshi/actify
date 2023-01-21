@@ -14,11 +14,13 @@ import sys
 import numpy as np
 import googlemaps
 import os
+from ast import literal_eval
 from dotenv import load_dotenv
+
 load_dotenv()
 api_key = os.getenv('GOOGLE_APIKEY')
 gmaps = googlemaps.Client(key=api_key)  
-openai.api_key = "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"
+openai.api_key = "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"
 app = Flask(__name__)
 client = MongoClient('mongodb+srv://Actify:Act1fy@cluster0.u87uqzy.mongodb.net/test', tlsCAFile=certifi.where())
 db = client["Main"]
@@ -50,28 +52,36 @@ def rankingFormula(location1,tags):
     for document in cluster: 
         rank = 0
 
-        location2 = document["location"]
+        location2 = document["location"]["label"]
         googleMapsData = gmaps.distance_matrix(location1,location2)['rows'][0]['elements'][0]
         distance = googleMapsData["distance"]["value"]
-        rank += 500/distance
+        print('distance:',distance)
+        rank_distance = ((distance/1000 + 1)**(-1))
+        # normalize the rank to a number between 0 and 1
+
+        print('distance weightage:', ((distance+1)**5))
 
         duration = googleMapsData["duration"]["value"]
-        rank += 60/duration
+        rank +=0*20 * (2.72**(-duration/(60*(10**14))))
+        rank_distance += rank
+        print('duration:', 20 * (2.72**(-duration/(60*(10**14)))))
 
         votes = document["petitionVotes"]
         rank += 0.25 * votes
 
         a = np.array(tags)
         b = np.array(document["tags"])
+        print('tags array:', a, b)
         ans = len(np.intersect1d(a, b))
-        rank += 1.5*(ans**2)
+        print('tags:',ans)
+        rank += 1000*(ans**2)
 
         donationPercentage = document["donationAmount"]/document["donationGoal"]
         rank+= 0.05 * (donationPercentage**0.5)
 
         titleArr.append(document["title"])
         rankArr.append(rank)
-        documentArr.append(document)
+        documentArr.append(json_util.dumps(document))
 
     documentArr2 = [documentArr for _,documentArr in sorted(zip(rankArr,documentArr),reverse=True)]
     return documentArr2
@@ -79,15 +89,19 @@ def rankingFormula(location1,tags):
 def getTagsfromMessage(message):
     response = openai.Completion.create(
     model="text-davinci-003",
-    prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
+    prompt="Identify the keywords from the following message from one of the following keywords. Enter the output as an array. \nKey Words: [\"Animals\", \"Education\", \"Environment\", \"Transport\", \"Food\", \"Plastic\", \"Habitat\", \"Sanctuary\", \"Wildlife\", \"Sustainability\", \"Recycling\", \"Health\", \"Plantation\", \"Water\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
     temperature=0.7,
     max_tokens=256,
     top_p=1,
     frequency_penalty=0,
     presence_penalty=0
     )
-    tags = response["choices"][0]["text"].split(",")
-    tags = ["Animals","Women's Rights"]
+    tags = response["choices"][0]["text"]
+    tags = literal_eval(tags)
+    # initTag = tags[0].split('Key Words: ')[1]
+    # tags[0] = initTag
+
+    print('prinasda',tags)
     for i in range(0,len(tags)): 
         if tags[i][:2] == "\n": 
             tags[i] = tags[i][3:]
@@ -99,7 +113,7 @@ def getTagsfromMessage(message):
 def recommendInitiatives(message): 
     """response = openai.Completion.create(
     model="text-davinci-003",
-    prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
+    prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Education\", \"Environment\", \"Transport\", \"Food\", \"Plastic\", \"Habitat\", \"Sanctuary\", \"Wildlife\", \"Sustainability\", \"Recycling\", \"Health\", \"Plantation\", \"Water\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
     temperature=0.7,
     max_tokens=256,
     top_p=1,
@@ -154,9 +168,9 @@ def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
     inserting = orgCollection.insert_one(insertDict)
 
-def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,petitionVotes,physicalProducts,image,website):
+def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,city,tags,petitionVotes,physicalProducts,image,website):
     print(name)
-    insertDict = {"name":name,"email":email,"title":title,"alias":alias,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
+    insertDict = {"name":name,"email":email,"title":title,"alias":alias,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"city":city,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
     print(insertDict)
     initiativeCollection.insert_one(insertDict)
 
@@ -164,10 +178,10 @@ def insertInitiative(name,email,title,alias,description,donationGoal,donationAmo
 
 def createDescription(name,location,needs):
     response = openai.Completion.create(
-        model="text-davinci-003",
+        model="text-babbage-001",
         prompt="Write an appeal for an initiative called {}, located in {}, that needs{}".format(name,location,needs),
-        temperature=0.7,
-        max_tokens=256,
+        temperature=0.2,
+        max_tokens=110,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0
@@ -202,7 +216,7 @@ def addInitiative():
             json_data = json.loads(x["body"])
             print(json_data["name"])
             
-            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["alias"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["tags"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
+            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["alias"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["city"],json_data["tags"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
             return ("InitiatveAdded Added")
         except Exception as e:
             print(e)
@@ -256,9 +270,12 @@ def generateDescription():
     if request.method == "POST":
         try: 
             x = json.loads(request.data.decode("utf-8"))
+            # print('x', json_data)
             json_data = json.loads(x["body"])
+            print('title: ',json_data['title'], 'city: ',json_data['city'], 'needs: ',json_data['needs'])
             to_return = createDescription(json_data["title"],json_data["city"],json_data["needs"])
-            return ({"description":to_return})
+            print(to_return)
+            return ({"description": to_return })
         except Exception as e: 
             print (e)
 
@@ -278,13 +295,16 @@ def addPetitionVote():
 
 @app.route('/getRankedList',methods = ["GET","POST"])
 @cross_origin()
-def updatePetitionVotes():
+def getRankedList():
     if request.method == "POST":
         try: 
             x = json.loads(request.data.decode("utf-8"))
             json_data = json.loads(x["body"])
             tags = getTagsfromMessage(json_data["message"])
+            print("tags",tags)
+            print(json_data["location"])
             documentsRanked = rankingFormula(json_data["location"],tags)
+            # print(documentsRanked)
             return (documentsRanked)
 
         except Exception as e: 

@@ -1,8 +1,10 @@
 import { InitiativeProps } from "@/components/InitiativeCard";
 import Navbar from "@/components/Navbar";
 import ProgressBar from "@/components/ProgressBar";
+import ShipModal from "@/components/ShipModal";
 import axios from "axios";
 import { GetStaticPaths } from "next";
+import { useState } from "react";
 
 const Initiative = ({
   initiative,
@@ -11,49 +13,71 @@ const Initiative = ({
   initiative: InitiativeProps;
   name: string;
 }) => {
+  const [supplyModal, setSupplyModal] = useState<boolean>(false);
+
   return (
-    <div className="flex flex-col items-center justify-start h-full min-h-screen w-screen bg-background">
-      <Navbar />
-      <h1 className="font-semibold text-4xl text-text my-8">
-        {initiative.title}
-      </h1>
-      <div className="flex justify-start items-start gap-10 w-3/4">
-        <img src={initiative.imageSrc} alt="" className="rounded-xl w-[70%]" />
+    <>
+      <div
+        className={`flex flex-col items-center justify-start h-full min-h-screen w-screen bg-background ${
+          supplyModal && "blur-md"
+        }`}
+      >
+        <Navbar />
+        <h1 className="font-semibold text-4xl text-text my-8">
+          {initiative.title}
+        </h1>
+        <div className="flex justify-start items-start gap-10 w-3/4">
+          <img
+            src={initiative.imageSrc}
+            alt=""
+            className="rounded-xl w-[70%]"
+          />
 
-        <div className="flex flex-col justify-start items-start w-[30%]">
-          <div className="flex flex-col justify-start items-start w-full">
-            <h1 className="font-semibold text-2xl text-text mr-4">
-              Rs. {initiative.donationAmount}
-            </h1>
-            <p className="text-text mb-2">
-              Raised out of Rs. {initiative.donationGoal}
-            </p>
-            <ProgressBar
-              bgcolor="#0099CC"
-              completed={
-                (+initiative.donationAmount / +initiative.donationGoal) * 100
-              }
-            />
+          <div className="flex flex-col justify-start items-start w-[30%]">
+            <div className="flex flex-col justify-start items-start w-full">
+              <h1 className="font-semibold text-2xl text-text mr-4">
+                Rs. {initiative.donationAmount}
+              </h1>
+              <p className="text-text mb-2">
+                Raised out of Rs. {initiative.donationGoal}
+              </p>
+              <ProgressBar
+                bgcolor="#0099CC"
+                completed={
+                  (+initiative.donationAmount / +initiative.donationGoal) * 100
+                }
+              />
 
-            <div className="cursor-pointer px-4 py-2 bg-accent rounded-lg flex justify-center items-center w-full mt-8">
-              Donate
-            </div>
+              <div className="cursor-pointer px-4 py-2 bg-accent rounded-lg flex justify-center items-center w-full mt-8">
+                Donate
+              </div>
 
-            <p className="mt-16">
-              Help {name} by donating{" "}
-              <b>{initiative.physicalProducts.join(", ")}</b>.
-            </p>
-            <div className="cursor-pointer px-4 py-2 bg-accent rounded-lg flex justify-center items-center w-full mt-4">
-              Supply
+              <p className="mt-16">
+                Help {name} by donating{" "}
+                <b>{initiative.physicalProducts.join(", ")}</b>.
+              </p>
+              <div
+                onClick={() => setSupplyModal(true)}
+                className="cursor-pointer px-4 py-2 bg-accent rounded-lg flex justify-center items-center w-full mt-4"
+              >
+                Supply
+              </div>
             </div>
           </div>
         </div>
+
+        <p className="w-3/4 text-left text-sm">#{initiative.tags.join(" #")}</p>
+
+        <p className="text-xl mt-8 text-left w-3/4">{initiative.description}</p>
       </div>
-
-      <p className="w-3/4 text-left text-sm">#{initiative.tags.join(" #")}</p>
-
-      <p className="text-xl mt-8 text-left w-3/4">{initiative.description}</p>
-    </div>
+      {supplyModal && (
+        <ShipModal
+          physicalNeeds={initiative.physicalProducts}
+          setSupplyModal={setSupplyModal}
+          initiativeLocation={initiative.location["label"]}
+        />
+      )}
+    </>
   );
 };
 

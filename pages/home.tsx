@@ -4,31 +4,20 @@ import { Tags } from "@/enum/tags";
 import { useEffect, useState } from "react";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import axios from "axios";
+import { getRankings } from "@/utils/recommendation";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 
 const Dashboard = () => {
-  const [initiatives, setInitiatives] = useState<InitiativeProps[]>([
-    {
-      imageSrc:
-        "https://images.unsplash.com/photo-1617854818583-09e7f077a156?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
-      title: "Help the Homeless",
-      alias: "help-the-homeless",
-      description:
-        "We are trying to help the homeless in our community by providing them with food and shelter.",
-      donationGoal: "100,000",
-      donationAmount: "50,000",
-      location: {
-        lat: 0,
-        lng: 0,
-      },
-      tags: [Tags.Food],
-      city: "Bangalore",
-      petitionVotes: 100,
-      physicalProducts: ["Food", "Shelter"],
-    },
-  ]);
+  const [initiatives, setInitiatives] = useState<InitiativeProps[]>([]);
+
+  const [message, setMessage] = useState<string>();
+  const [location, setLocation] = useState();
+  const [rank, setRank] = useState<any[]>([]);
 
   useEffect(() => {
     fetchInitiatives();
+    let message = localStorage.getItem("message");
+    if (message) setMessage(message);
   }, []);
 
   const fetchInitiatives = async () => {
@@ -58,7 +47,7 @@ const Dashboard = () => {
           donationAmount: obj.donationAmount,
           location: obj.location,
           tags: obj.tags,
-          city: obj.location,
+          city: obj.city,
           petitionVotes: obj.petitionVotes,
           physicalProducts: obj.physicalProducts,
         };
@@ -66,15 +55,16 @@ const Dashboard = () => {
         // console.log(initiative);
         // console.log(initiatives);
 
-        !initiatives.map((obj) => {
-          if (initiative.title !== obj.title)
-            setInitiatives((prev) => [...prev, initiative]);
-        });
+        setInitiatives((prev) => [...prev, initiative]);
       });
     } catch (err) {
       console.log(err);
     }
   };
+
+  useEffect(() => {
+    console.log("rank", rank);
+  }, [rank]);
 
   return (
     <div className="flex flex-col w-screen h-full min-h-screen bg-background justify-start items-center">
@@ -84,11 +74,70 @@ const Dashboard = () => {
         Discover Initiatives to Support
       </h1>
 
-      {initiatives
-        .filter((item, index) => initiatives.indexOf(item) === index)
-        .map((initiative: InitiativeProps) => {
-          return <InitiativeCard {...initiative} />;
-        })}
+      <div className="flex flex w-3/4 justify-start items-end gap-4 mb-8">
+        <div className="flex flex-col w-[40%]">
+          <p>Enter your location</p>
+          <div className="text-text w-full">
+            <GooglePlacesAutocomplete
+              selectProps={{
+                location,
+                onChange: setLocation,
+              }}
+              autocompletionRequest={{
+                componentRestrictions: {
+                  country: ["in"],
+                },
+              }}
+              apiKey={process.env.NEXT_PUBLIC_MAPS_APIKEY}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col w-[40%]">
+          <p>Enter the type of initiative you would like to support</p>
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Eg: I want to support initiatives that help the homeless"
+            className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
+          />
+        </div>
+
+        <div
+          onClick={async () => {
+            if (location && message) {
+              let rankings = await getRankings(location["label"], message);
+              let newInitiatives: InitiativeProps[] = [];
+              localStorage.setItem("message", message);
+              localStorage.setItem("location", location["label"]);
+
+              for (let i = 0; i < rankings.length; i++) {
+                const ranking = rankings[i];
+                let parsed_ranking = JSON.parse(ranking);
+                console.log(parsed_ranking);
+                newInitiatives.push(parsed_ranking);
+              }
+
+              console.log("newInitiatives", newInitiatives);
+
+              // setRank((prev) => [...prev, parsed_ranking]);
+              setInitiatives(newInitiatives);
+            }
+          }}
+          className="px-6 py-2 bg-accent flex justify-center items-center rounded-lg cursor-pointer"
+        >
+          Save
+        </div>
+      </div>
+
+      {initiatives.length > 0 &&
+        initiatives
+          // .sort((a, b) => b.donationAmount - a.donationAmount)
+          // .filter((item, index) => initiatives.indexOf(item) === index)
+          .map((initiative: InitiativeProps) => {
+            return <InitiativeCard key={initiative.alias} {...initiative} />;
+          })}
     </div>
   );
 };
