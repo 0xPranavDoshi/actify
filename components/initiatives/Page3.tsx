@@ -79,7 +79,7 @@ const Page3 = ({
             // let desc = generatedDesc.data.choices[0].text;
             // desc = desc?.substring(2, desc.length);
 
-            setDescription(generatedDesc);
+            setDescription(generatedDesc.substring(2, generatedDesc.length));
           }
         }}
         className="text-lg cursor-pointer text-accent2 hover:underline"

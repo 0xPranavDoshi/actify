@@ -10,7 +10,7 @@ from bson import json_util
 from bson.json_util import dumps
 from bson.json_util import loads
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 app = Flask(__name__)
 client = MongoClient('mongodb+srv://Actify:Act1fy@cluster0.u87uqzy.mongodb.net/test', tlsCAFile=certifi.where())
@@ -27,7 +27,7 @@ def recommendInitiatives(message):
     model="text-davinci-003",
     prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
     temperature=0.7,
-    max_tokens=256,
+    max_tokens=110,
     top_p=1,
     frequency_penalty=0,
     presence_penalty=0
