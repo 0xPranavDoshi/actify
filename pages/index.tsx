@@ -1,11 +1,44 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "@next/font/google";
+import styles from "@/styles/Home.module.css";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
+import { initializeApp } from "firebase/app";
+import { useEffect } from "react";
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_APIKEY,
+  authDomain: "actify-9ca5c.firebaseapp.com",
+  projectId: "actify-9ca5c",
+  storageBucket: "actify-9ca5c.appspot.com",
+  messagingSenderId: "309121548392",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APPID,
+};
+
+const app = initializeApp(firebaseConfig);
 
 export default function Home() {
+  // useEffect(() => {
+  //   // Check if firebase app works
+  //   console.log(app);
+  //   const auth = getAuth();
+  //   signInWithEmailAndPassword(auth, "asd@sd.com", "asdasd")
+  //     .then((userCredential) => {
+  //       // Signed in
+  //       const user = userCredential.user;
+  //       console.log("Signed in:", user);
+
+  //       // ...
+  //     })
+  //     .catch((error) => {
+  //       const errorCode = error.code;
+  //       const errorMessage = error.message;
+  //       console.log("Error:", errorCode, errorMessage);
+  //     });
+  // }, []);
+
   return (
     <>
       <Head>
@@ -26,7 +59,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              By{' '}
+              By{" "}
               <Image
                 src="/vercel.svg"
                 alt="Vercel Logo"
@@ -119,5 +152,5 @@ export default function Home() {
         </div>
       </main>
     </>
-  )
+  );
 }
