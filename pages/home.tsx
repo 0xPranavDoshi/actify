@@ -1,7 +1,9 @@
 import InitiativeCard, { InitiativeProps } from "@/components/InitiativeCard";
 import Navbar from "@/components/Navbar";
 import { Tags } from "@/enum/tags";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { MongoClient, ServerApiVersion } from "mongodb";
+import axios from "axios";
 
 const Dashboard = () => {
   const [initiatives, setInitiatives] = useState<InitiativeProps[]>([
@@ -24,8 +26,29 @@ const Dashboard = () => {
     },
   ]);
 
+  useEffect(() => {
+    // fetch initiatives from api
+    fetchInitiatives();
+  }, []);
+
+  const fetchInitiatives = async () => {
+    const url = "http://127.0.0.1:5000/fetchInitiatives";
+
+    try {
+      const res = await axios.post(url, {
+        method: "POST",
+        body: JSON.stringify({ x: "x" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log(res);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
-    <div className="flex flex-col w-screen h-screen bg-background justify-start items-center">
+    <div className="flex flex-col w-screen h-full min-h-screen bg-background justify-start items-center">
       <Navbar />
 
       <h1 className="text-center w-full text-4xl my-8 font-light">

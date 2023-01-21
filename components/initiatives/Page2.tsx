@@ -76,7 +76,7 @@ const Page2 = ({
 
         <div
           onClick={() => {
-            if (donationGoal && physicalNeeds && donationAmount) {
+            if (donationGoal && physicalNeeds && donationAmount !== undefined) {
               router.query.page = "3";
               router.push(router);
             }

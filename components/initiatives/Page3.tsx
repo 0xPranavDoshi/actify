@@ -1,9 +1,16 @@
 import { Tags, TagsArray } from "@/enum/tags";
 import { generateDescription } from "@/utils/description";
 import { useRouter } from "next/router";
-import { HiArrowNarrowRight } from "react-icons/hi";
-import { InitiativeProps } from "../InitiativeCard";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import axios from "axios";
+import { useState } from "react";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { firebaseConfig } from "@/config";
+
+getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+const firebaseApp = getApp();
+const storage = getStorage(firebaseApp, "gs://actify-9ca5c.appspot.com");
 
 const Page3 = ({
   title,
@@ -27,6 +34,10 @@ const Page3 = ({
   tagsSelected: Tags[] | undefined;
 }) => {
   const router = useRouter();
+
+  const [coverImageUrl, setCoverImageUrl] = useState<string>();
+  const [coverImage, setCoverImage] = useState<File>();
+  const [imageType, setImageType] = useState<string>();
 
   return (
     <>
@@ -76,7 +87,27 @@ const Page3 = ({
         Generate description
       </h5>
 
-      <div className="w-full flex justify-end mt-12 gap-2">
+      <h2 className="font-semibold text-3xl mt-8 mb-4">
+        Upload a cover image for your initiative.
+      </h2>
+
+      <input
+        type="file"
+        onChange={(e) => {
+          if (e.target.files) {
+            let url = URL.createObjectURL(e.target.files[0]);
+            setCoverImageUrl(url);
+            setCoverImage(e.target.files[0]);
+            setImageType(e.target.files[0].type.split("/")[1]);
+            console.log(e.target.files[0]);
+          }
+        }}
+        accept="image/jpeg, image/png, image/jpg"
+        className="bg-background rounded-lg text-text"
+      />
+      <img src={coverImageUrl} alt="" width="600" className="mt-4" />
+
+      <div className="w-full flex justify-end my-12 gap-2">
         <div
           onClick={() => {
             router.query.page = "2";
@@ -94,49 +125,53 @@ const Page3 = ({
               description &&
               city &&
               donationGoal &&
-              donationAmount &&
+              donationAmount !== undefined &&
               physicalNeeds &&
               physicalNeeds.length > 0 &&
               tagsSelected &&
               tagsSelected.length > 0
             ) {
-              // const initiative: InitiativeProps = {
-              //   title,
-              //   description,
-              //   city,
-              //   imageSrc: "",
-              //   donationGoal: donationGoal.toString(),
-              //   donationAmount: donationAmount.toString(),
-              //   tags: tagsSelected,
-              //   location: null,
-              //   physicalProducts: physicalNeeds,
-              //   petitionVotes: 0,
-              // };
+              const imageRef = ref(storage, `${title}/cover.${imageType}`);
 
-              const url = "http://127.0.0.1:5000/addInitiative";
+              coverImage &&
+                (await uploadBytes(imageRef, coverImage).then(
+                  (snapshot: any) => {
+                    console.log("Uploaded a blob or file!");
+                  }
+                ));
 
-              const body = {
-                name: "Pranav",
-                email: "pranav@a.com",
-                title: title,
-                description: description,
-                donationGoal: donationGoal,
-                donationAmount: donationAmount,
-                location: "Mumbai",
-                petitionVotes: 0,
-                physicalProducts: physicalNeeds,
-                image: "",
-                website: "",
-              };
+              getDownloadURL(ref(storage, `${title}/cover.${imageType}`))
+                .then(async (imageUrl) => {
+                  console.log("url", imageUrl);
 
-              const res = await axios.post(url, {
-                method: "POST",
-                body: JSON.stringify(body),
-                headers: { "Content-Type": "application/json" },
-              });
+                  const url = "http://127.0.0.1:5000/addInitiative";
 
-              const data = await res.data;
-              console.log(data);
+                  const body = {
+                    name: "Pranav",
+                    email: "pranav@a.com",
+                    title: title,
+                    description: description,
+                    donationGoal: donationGoal,
+                    donationAmount: donationAmount,
+                    location: "Mumbai",
+                    petitionVotes: 0,
+                    physicalProducts: physicalNeeds,
+                    image: imageUrl,
+                    website: "",
+                  };
+
+                  const res = await axios.post(url, {
+                    method: "POST",
+                    body: JSON.stringify(body),
+                    headers: { "Content-Type": "application/json" },
+                  });
+
+                  const data = await res.data;
+                  console.log(data);
+                })
+                .catch((error) => {
+                  console.log("error", error);
+                });
             }
           }}
           className="px-8 gap-2 py-2 bg-accent flex justify-start  items-center rounded-lg cursor-pointer"

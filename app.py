@@ -10,6 +10,14 @@ db = client["Main"]
 orgCollection = db["Organisations"]
 initiativeCollection = db["Initiatives"]
 
+def getInitiatives():
+    cursor = initiativeCollection.find({})
+    documentArr = []
+    for document in cursor:
+        documentArr.append(document)
+        print(document)
+    return documentArr
+
 def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
     inserting = orgCollection.insert_one(insertDict)
@@ -23,13 +31,13 @@ def insertInitiative(name,email,title,description,donationGoal,donationAmount,lo
 #[feasability,technology,implementation, innovation, problem statement ]
 
 @app.route('/signUp', methods=["GET", "POST"])
-@cross_origin()
+# @cross_origin()
 def signUp():
     if request.method == "POST":
         try:
             x = json.loads(request.data)
             json_data = json.loads(x['body'])
-            
+
             insertAccount(json_data["name"],json_data["email"])
             print ("Account Added")
 
@@ -53,6 +61,17 @@ def addInitiative():
             print(e)
     response = jsonify(response="addInitiative POST URL")
     return (response)
+
+@app.route('/fetchInitiatives', methods = ["GET", "POST"])
+@cross_origin()
+def fetchInitiatives():
+    if request.method == "POST":
+        try: 
+            cursor = getInitiatives()
+            return (cursor)
+        except Exception as e:
+            print(e)
+        
 
 if __name__ == '__main__':
     app.run()

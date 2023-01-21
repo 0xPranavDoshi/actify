@@ -33,7 +33,7 @@ const CreateInitiative = () => {
   const [description, setDescription] = useState<string>();
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-background justify-start items-center">
+    <div className="flex flex-col w-screen h-full min-h-screen bg-background justify-start items-center">
       <Navbar />
 
       <div className="flex flex-col w-1/2">
