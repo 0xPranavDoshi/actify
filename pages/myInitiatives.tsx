@@ -1,9 +1,7 @@
-import { InitiativeProps } from "@/components/InitiativeCard";
+import InitiativeCard, { InitiativeProps } from "@/components/InitiativeCard";
 import Navbar from "@/components/Navbar";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { getAuth } from "firebase/auth";
-import { getEmail } from "../firebase/auth";
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { firebaseConfig } from "@/config";
@@ -18,16 +16,7 @@ const MyInitiatives = () => {
 
   useEffect(() => {
     fetchInitiatives();
-    console.log(app);
   }, []);
-
-  //   useEffect(() => {
-  //     setTimeout(async () => {
-  //       const auth = await getAuth();
-  //       const user = auth.currentUser;
-  //       console.log(user);
-  //     }, 0);
-  //   }, [getApps]);
 
   const fetchInitiatives = async () => {
     const url = "http://127.0.0.1:5000/fetchInitiatives";
@@ -44,8 +33,8 @@ const MyInitiatives = () => {
 
       let data = await res.data;
 
-      const email = await getEmail();
-      console.log("", email);
+      const email = localStorage.getItem("email");
+      console.log("email", email);
 
       console.log(data);
 
@@ -63,10 +52,13 @@ const MyInitiatives = () => {
           physicalProducts: obj.physicalProducts,
         };
 
-        !initiatives.map((obj) => {
-          if (initiative.title !== obj.title)
-            setInitiatives((prev) => [...prev, initiative]);
-        });
+        // initiatives.map((initObj) => {
+        if (obj.email === email) {
+          console.log("initiative", initiative);
+
+          setInitiatives((prev) => [...prev, initiative]);
+        }
+        // });
       });
     } catch (err) {
       console.log(err);
@@ -75,7 +67,13 @@ const MyInitiatives = () => {
   return (
     <div className="min-h-screen h-full flex-col justify-start items-center w-screen bg-background flex">
       <Navbar />
-      <h1>Your initiatives</h1>
+      <h1 className="text-4xl my-8 font-light">Your initiatives</h1>
+
+      {initiatives
+        .filter((item, index) => initiatives.indexOf(item) === index)
+        .map((initiative: InitiativeProps) => {
+          return <InitiativeCard {...initiative} />;
+        })}
     </div>
   );
 };

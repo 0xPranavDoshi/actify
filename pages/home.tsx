@@ -13,8 +13,8 @@ const Dashboard = () => {
       title: "Help the Homeless",
       description:
         "We are trying to help the homeless in our community by providing them with food and shelter.",
-      donationGoal: "$100,000",
-      donationAmount: "$50,000",
+      donationGoal: "100,000",
+      donationAmount: "50,000",
       location: {
         lat: 0,
         lng: 0,

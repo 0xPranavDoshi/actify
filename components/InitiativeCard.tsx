@@ -71,8 +71,8 @@ const InitiativeCard = ({
 
         <div className="flex justify-between items-end w-full mt-4">
           <div className="flex flex-col">
-            <p className="text-2xl font-semibold">{donationAmount}</p>
-            <p className="text-sm">Raised out of {donationGoal}</p>
+            <p className="text-2xl font-semibold">Rs. {donationAmount}</p>
+            <p className="text-sm">Raised out of Rs. {donationGoal}</p>
           </div>
           <div className="flex gap-2 justify-center items-center mr-4">
             <GrLocation />

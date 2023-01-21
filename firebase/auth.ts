@@ -13,7 +13,7 @@ getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const getEmail = async () => {
   const auth = await getAuth();
   return new Promise((res, rej) => {
-    res(auth.currentUser);
+    res(auth.currentUser?.email);
   });
 };
 
@@ -25,6 +25,8 @@ export const signInUser = (email: string, password: string) => {
         // Signed in
         const user = userCredential.user;
         console.log("Signed in user:", user);
+        localStorage.setItem("email", email);
+
         res(user);
       })
       .catch((error: any) => {
@@ -46,6 +48,8 @@ export const registerUser = (name: string, email: string, password: string) => {
         // Signed in
         const user = userCredential.user;
         console.log("Created user:", user);
+        localStorage.setItem("email", email);
+        localStorage.setItem("name", name);
 
         // Post name to MongoDB
         const url = "http://127.0.0.1:5000/signUp";
