@@ -9,16 +9,9 @@ import openai
 from bson import json_util
 from bson.json_util import dumps
 from bson.json_util import loads
-import json
-import sys
-import numpy as np
-import googlemaps
-import os
-from dotenv import load_dotenv
-load_dotenv()
-api_key = os.getenv('GOOGLE_APIKEY')
-gmaps = googlemaps.Client(key=api_key)  
+
 openai.api_key = "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"
+
 app = Flask(__name__)
 client = MongoClient('mongodb+srv://Actify:Act1fy@cluster0.u87uqzy.mongodb.net/test', tlsCAFile=certifi.where())
 db = client["Main"]
@@ -29,117 +22,35 @@ def filterInitiatives(filterBy,filterFor):
     cursor = initiativeCollection.find({filterBy:filterFor})
     return json_util.dumps(cursor)
 
-def locationCalculator(title):
-    threshold = 10000
-    location1 = initiativeCollection.find({"title":title})[0]["location"]
-    cluster = initiativeCollection.find({"title":{"$not":{"title":"title"}}},{"title":1,"location":1})
-    returnArr = []
-    for document in cluster: 
-        location2 = document["location"]
-        googleMapsData = gmaps.distance_matrix(location1,location2)['rows'][0]['elements'][0]
-        distance = googleMapsData["distance"]["value"]
-        if distance < threshold: 
-            returnArr.append({document["title"],distance})
-    return returnArr
-
-def rankingFormula(location1,tags):
-    cluster = initiativeCollection.find({})
-    titleArr = []
-    rankArr = []
-    documentArr = []
-    for document in cluster: 
-        rank = 0
-
-        location2 = document["location"]
-        googleMapsData = gmaps.distance_matrix(location1,location2)['rows'][0]['elements'][0]
-        distance = googleMapsData["distance"]["value"]
-        rank += 500/distance
-
-        duration = googleMapsData["duration"]["value"]
-        rank += 60/duration
-
-        votes = document["petitionVotes"]
-        rank += 0.25 * votes
-
-        a = np.array(tags)
-        b = np.array(document["tags"])
-        ans = len(np.intersect1d(a, b))
-        rank += 1.5*(ans**2)
-
-        donationPercentage = document["donationAmount"]/document["donationGoal"]
-        rank+= 0.05 * (donationPercentage**0.5)
-
-        titleArr.append(document["title"])
-        rankArr.append(rank)
-        documentArr.append(document)
-
-    documentArr2 = [documentArr for _,documentArr in sorted(zip(rankArr,documentArr),reverse=True)]
-    return documentArr2
-
-def getTagsfromMessage(message):
+def recommendInitiatives(message): 
     response = openai.Completion.create(
     model="text-davinci-003",
     prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
     temperature=0.7,
-    max_tokens=256,
+    max_tokens=110,
     top_p=1,
     frequency_penalty=0,
     presence_penalty=0
     )
     tags = response["choices"][0]["text"].split(",")
-    tags = ["Animals","Women's Rights"]
-    for i in range(0,len(tags)): 
-        if tags[i][:2] == "\n": 
-            tags[i] = tags[i][3:]
-        if tags[i][0] == " ":
-            tags[i] = tags[i][1:]
-        
-    return tags
-
-def recommendInitiatives(message): 
-    """response = openai.Completion.create(
-    model="text-davinci-003",
-    prompt="Identify the users interests from the following message from one of the following tags: \nTags: [\"Animals\", \"Criminal Justice\", \"Disability\", \"Economic Justice\", \"Education\", \"Entertainment\", \"Environment\", \"Family\", \"Food\", \"Health\", \"Human Rights\", \"Immigration\", \"LGBT Rights\", \"Politics\", \"Technology\", \"Women's Rights\"]\nMessage:{} \n".format(message),
-    temperature=0.7,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
-    )
-    tags = response["choices"][0]["text"].split(",")
-    """
-    tags = ["Animals","Women's Rights"]
-    for i in range(0,len(tags)): 
-        if tags[i][:2] == "\n": 
-            tags[i] = tags[i][3:]
-        if tags[i][0] == " ":
-            tags[i] = tags[i][1:]
-        
     initiativesList = []
     rankingList = []
-    print(tags)
-    initiatives = initiativeCollection.find({"tags":{"$in":tags}})
-    try: 
+
+    for tag in tags: 
+        initiatives = filterInitiatives("tags",tag)
+        print(initiatives)
         for initiative in initiatives: 
-            initiativeTags = initiative["tags"]
-            a = np.array(tags)
-            b = np.array(initiativeTags)
-            ans = len(np.intersect1d(a, b))
+            print(initiative)
             if initiative["title"] not in initiativesList:
                 initiativesList.append(initiative["title"])
-                rankingList.append(ans)
+                rankingList.append(1)
             else: 
-                rankingList[initiativesList.index(initiative)] += ans
-    except Exception as e: 
-        print(e)
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
+                rankingList[initiativesList.index(initiative)] +=1 
     
     for (initiative,ranking) in zip(initiativesList,rankingList):
         print(initiative," ",ranking)
 
-recommendInitiatives("I am interested in protecting dogs, and other animals, like cats. I also like helping empower women from rural communities")
+# recommendInitiatives("I am interested in protecting dogs, and other animals, like cats. I also like helping empower women from rural communities")
 
 def addPetition(title, petitionCount):
     initiativeCollection.update_one({"title":title},{"$set":{"petitionVotes":petitionCount}})
@@ -154,13 +65,11 @@ def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
     inserting = orgCollection.insert_one(insertDict)
 
-def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,petitionVotes,physicalProducts,image,website):
+def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,tags,petitionVotes,physicalProducts,image,website):
     print(name)
     insertDict = {"name":name,"email":email,"title":title,"alias":alias,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
     print(insertDict)
     initiativeCollection.insert_one(insertDict)
-
-
 
 def createDescription(name,location,needs):
     response = openai.Completion.create(
@@ -233,7 +142,6 @@ def fetchfromAlias():
         except Exception as e:
             print(e)
 
-
 @app.route('/filter',methods = ["GET","POST"])
 @cross_origin()
 def filterInitiatives():
@@ -275,21 +183,6 @@ def addPetitionVote():
             return ({"petitionVotes":petitionVotes})
         except Exception as e: 
             print (e)
-
-@app.route('/getRankedList',methods = ["GET","POST"])
-@cross_origin()
-def updatePetitionVotes():
-    if request.method == "POST":
-        try: 
-            x = json.loads(request.data.decode("utf-8"))
-            json_data = json.loads(x["body"])
-            tags = getTagsfromMessage(json_data["message"])
-            documentsRanked = rankingFormula(json_data["location"],tags)
-            return (documentsRanked)
-
-        except Exception as e: 
-            print (e)
-
 
 if __name__ == '__main__':
     app.run()
