@@ -2,7 +2,6 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "@next/font/google";
 import styles from "@/styles/Home.module.css";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 import { initializeApp } from "firebase/app";
@@ -20,25 +19,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export default function Home() {
-  // useEffect(() => {
-  //   // Check if firebase app works
-  //   console.log(app);
-  //   const auth = getAuth();
-  //   signInWithEmailAndPassword(auth, "asd@sd.com", "asdasd")
-  //     .then((userCredential) => {
-  //       // Signed in
-  //       const user = userCredential.user;
-  //       console.log("Signed in:", user);
-
-  //       // ...
-  //     })
-  //     .catch((error) => {
-  //       const errorCode = error.code;
-  //       const errorMessage = error.message;
-  //       console.log("Error:", errorCode, errorMessage);
-  //     });
-  // }, []);
-
   return (
     <>
       <Head>
