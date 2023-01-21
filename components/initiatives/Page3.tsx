@@ -147,11 +147,13 @@ const Page3 = ({
                   const url = "http://127.0.0.1:5000/addInitiative";
                   const email = localStorage.getItem("email");
                   const name = localStorage.getItem("name");
+                  const alias = title.toLowerCase().replaceAll(" ", "-");
 
                   const body = {
                     name: name,
                     email: email,
                     title: title,
+                    alias: alias,
                     description: description,
                     donationGoal: donationGoal,
                     donationAmount: donationAmount,

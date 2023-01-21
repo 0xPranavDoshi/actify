@@ -20,7 +20,7 @@ const Navbar = () => {
         </a>
         <a
           href="/initiative"
-          className="flex justify-center items-center px-2 py-2 bg-accent rounded-lg cursor-pointer"
+          className="flex justify-center items-center px-4 py-2 bg-accent rounded-lg cursor-pointer"
         >
           Start an Initiative
         </a>

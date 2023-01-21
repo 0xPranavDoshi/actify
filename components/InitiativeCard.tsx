@@ -3,10 +3,12 @@ import { AiOutlineStar, AiFillStar } from "react-icons/ai";
 import { useEffect, useState } from "react";
 import { Tags } from "@/enum/tags";
 import { addPetition } from "@/utils/petition";
+import { useRouter } from "next/router";
 
 export interface InitiativeProps {
   imageSrc: string;
   title: string;
+  alias: string;
   description: string;
   donationGoal: string;
   donationAmount: string;
@@ -20,6 +22,7 @@ export interface InitiativeProps {
 const InitiativeCard = ({
   imageSrc,
   title,
+  alias,
   description,
   donationGoal,
   donationAmount,
@@ -31,6 +34,7 @@ const InitiativeCard = ({
 }: InitiativeProps) => {
   const [isStarred, setIsStarred] = useState(false);
   const [votes, setVotes] = useState<number>(petitionVotes);
+  const router = useRouter();
 
   useEffect(() => {
     let starredInitiatives: string[] | undefined = localStorage
@@ -78,7 +82,10 @@ const InitiativeCard = ({
   };
 
   return (
-    <div className="flex mb-8 justify-start items-start bg-secondary rounded-xl w-3/4">
+    <div
+      onClick={() => router.push(`/initiative/${alias}`)}
+      className="cursor-pointer flex mb-8 justify-start items-start bg-secondary rounded-xl w-3/4"
+    >
       <img
         src={imageSrc}
         alt=""

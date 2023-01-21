@@ -42,6 +42,7 @@ const MyInitiatives = () => {
         let initiative = {
           imageSrc: obj.image,
           title: obj.title,
+          alias: obj.alias,
           description: obj.description,
           donationGoal: obj.donationGoal,
           donationAmount: obj.donationAmount,

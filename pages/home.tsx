@@ -11,6 +11,7 @@ const Dashboard = () => {
       imageSrc:
         "https://images.unsplash.com/photo-1617854818583-09e7f077a156?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80",
       title: "Help the Homeless",
+      alias: "help-the-homeless",
       description:
         "We are trying to help the homeless in our community by providing them with food and shelter.",
       donationGoal: "100,000",
@@ -45,10 +46,13 @@ const Dashboard = () => {
 
       let data = await res.data;
 
+      console.log(data);
+
       data.forEach((obj: any) => {
         let initiative = {
           imageSrc: obj.image,
           title: obj.title,
+          alias: obj.alias,
           description: obj.description,
           donationGoal: obj.donationGoal,
           donationAmount: obj.donationAmount,
@@ -59,8 +63,8 @@ const Dashboard = () => {
           physicalProducts: obj.physicalProducts,
         };
 
-        console.log(initiative);
-        console.log(initiatives);
+        // console.log(initiative);
+        // console.log(initiatives);
 
         !initiatives.map((obj) => {
           if (initiative.title !== obj.title)

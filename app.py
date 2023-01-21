@@ -65,9 +65,9 @@ def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
     inserting = orgCollection.insert_one(insertDict)
 
-def insertInitiative(name,email,title,description,donationGoal,donationAmount,location,tags,petitionVotes,physicalProducts,image,website):
+def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,tags,petitionVotes,physicalProducts,image,website):
     print(name)
-    insertDict = {"name":name,"email":email,"title":title,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
+    insertDict = {"name":name,"email":email,"title":title,"alias":alias,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
     print(insertDict)
     initiativeCollection.insert_one(insertDict)
 
@@ -111,7 +111,7 @@ def addInitiative():
             json_data = json.loads(x["body"])
             print(json_data["name"])
             
-            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["tags"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
+            insertInitiative(json_data["name"],json_data["email"],json_data["title"],json_data["alias"],json_data["description"],json_data["donationGoal"],json_data["donationAmount"],json_data["location"],json_data["tags"],json_data["petitionVotes"],json_data["physicalProducts"],json_data["image"],json_data["website"])
             return ("InitiatveAdded Added")
         except Exception as e:
             print(e)
@@ -126,6 +126,21 @@ def fetchInitiatives():
         return (cursor)
     except Exception as e:
         print(e)
+
+@app.route('/fetchfromAlias', methods = ["GET","POST"])
+@cross_origin()
+def fetchfromAlias():
+    if request.method == "POST":
+        try:
+            x = json.loads(request.data)
+            json_data = json.loads(x['body'])
+
+            alias = json_data["alias"]
+            
+            cursor = initiativeCollection.find({"alias":alias})
+            return json_util.dumps(cursor)
+        except Exception as e:
+            print(e)
 
 @app.route('/filter',methods = ["GET","POST"])
 @cross_origin()
