@@ -12,7 +12,9 @@ const Navbar = () => {
         Actify
       </h3>
       <div className="flex justify-center items-center gap-4">
-        <p className="cursor-pointer">My Initiatives</p>
+        <a href="/myInitiatives" className="cursor-pointer text-text">
+          My Initiatives
+        </a>
         <a
           href="/initiative"
           className="flex justify-center items-center px-2 py-2 bg-accent rounded-lg cursor-pointer"

@@ -154,6 +154,7 @@ const Page3 = ({
                     donationGoal: donationGoal,
                     donationAmount: donationAmount,
                     location: "Mumbai",
+                    tags: tagsSelected,
                     petitionVotes: 0,
                     physicalProducts: physicalNeeds,
                     image: imageUrl,

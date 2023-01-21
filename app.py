@@ -3,6 +3,9 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import cross_origin
 import json
 import certifi
+from bson import json_util
+from bson.json_util import dumps
+from bson.json_util import loads
 from pymongo import MongoClient
 import os
 import openai
@@ -21,11 +24,13 @@ def updatePetition(title):
 
 def getInitiatives():
     cursor = initiativeCollection.find({})
-    documentArr = []
-    for document in cursor:
-        documentArr.append(document)
-        print(document)
-    return documentArr
+    # documentArr = []
+    # for document in cursor:
+    #     documentArr.append(document)
+    #     print(document)
+    # convert mongodb cursor to json
+    return json_util.dumps(cursor)
+
 
 def insertAccount(name,email):
     insertDict = {"name":name,"email":email}
@@ -51,7 +56,7 @@ def createDescription(name,location,needs):
 #[feasability,technology,implementation, innovation, problem statement ]
 
 @app.route('/signUp', methods=["GET", "POST"])
-# @cross_origin()
+@cross_origin()
 def signUp():
     if request.method == "POST":
         try:
@@ -82,15 +87,12 @@ def addInitiative():
     response = jsonify(response="addInitiative POST URL")
     return (response)
 
-@app.route('/fetchInitiatives', methods = ["GET", "POST"])
+@app.route('/fetchInitiatives', methods = ["GET"])
 @cross_origin()
 def fetchInitiatives():
-    if request.method == "POST":
-        try: 
-            cursor = getInitiatives()
-            return (cursor)
-        except Exception as e:
-            print(e)
+    cursor = getInitiatives()
+    print(cursor)
+    return cursor
         
 @app.route('/generateDescription',methods = ["GET","POST"])
 @cross_origin()

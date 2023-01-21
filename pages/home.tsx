@@ -27,7 +27,6 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
-    // fetch initiatives from api
     fetchInitiatives();
   }, []);
 
@@ -35,13 +34,39 @@ const Dashboard = () => {
     const url = "http://127.0.0.1:5000/fetchInitiatives";
 
     try {
-      const res = await axios.post(url, {
-        method: "POST",
-        body: JSON.stringify({ x: "x" }),
-        headers: { "Content-Type": "application/json" },
+      const res = await axios.get(url, {
+        // mode: "no-cors",
+        method: "GET",
+        // headers: {
+        //   "Content-Type": "application/json",
+        //   "Access-Control-Allow-Origin": "*",
+        // },
       });
 
-      console.log(res);
+      let data = await res.data;
+
+      data.forEach((obj: any) => {
+        let initiative = {
+          imageSrc: obj.image,
+          title: obj.title,
+          description: obj.description,
+          donationGoal: obj.donationGoal,
+          donationAmount: obj.donationAmount,
+          location: obj.location,
+          tags: obj.tags,
+          city: obj.location,
+          petitionVotes: obj.petitionVotes,
+          physicalProducts: obj.physicalProducts,
+        };
+
+        console.log(initiative);
+        console.log(initiatives);
+
+        !initiatives.map((obj) => {
+          if (initiative.title !== obj.title)
+            setInitiatives((prev) => [...prev, initiative]);
+        });
+      });
     } catch (err) {
       console.log(err);
     }
@@ -55,9 +80,11 @@ const Dashboard = () => {
         Discover Initiatives to Support
       </h1>
 
-      {initiatives.map((initiative: InitiativeProps) => {
-        return <InitiativeCard {...initiative} />;
-      })}
+      {initiatives
+        .filter((item, index) => initiatives.indexOf(item) === index)
+        .map((initiative: InitiativeProps) => {
+          return <InitiativeCard {...initiative} />;
+        })}
     </div>
   );
 };

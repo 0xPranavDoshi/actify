@@ -1,6 +1,6 @@
 import { GrLocation } from "react-icons/gr";
 import { AiOutlineStar, AiFillStar } from "react-icons/ai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tags } from "@/enum/tags";
 
 export interface InitiativeProps {
@@ -30,33 +30,40 @@ const InitiativeCard = ({
 }: InitiativeProps) => {
   const [isStarred, setIsStarred] = useState(false);
 
+  useEffect(() => {
+    console.log(isStarred);
+    if (isStarred) {
+    }
+  }, [isStarred]);
+
   return (
-    <div className="flex justify-start items-start bg-secondary rounded-xl w-3/4">
+    <div className="flex mb-8 justify-start items-start bg-secondary rounded-xl w-3/4">
       <img
         src={imageSrc}
         alt=""
         width={300}
         className="rounded-l-xl h-full object-cover"
       />
-      <div className="flex flex-col p-4">
+      <div className="flex flex-col p-4 w-full">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
             <h2 className="text-3xl font-semibold mb-2">{title}</h2>
             <p>{description}</p>
           </div>
 
-          <div>
+          <div className="flex justify-center items-center gap-1 mt-2">
+            <p>{petitionVotes}</p>
             {isStarred ? (
               <AiFillStar
                 onClick={() => setIsStarred(!isStarred)}
                 fill="#0099CC"
-                className="text-2xl cursor-pointer mt-2"
+                className="text-2xl cursor-pointer"
               />
             ) : (
               <AiOutlineStar
                 onClick={() => setIsStarred(!isStarred)}
                 fill="black"
-                className="text-2xl cursor-pointer mt-2"
+                className="text-2xl cursor-pointer"
               />
             )}
           </div>

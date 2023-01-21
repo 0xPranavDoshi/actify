@@ -10,6 +10,13 @@ import axios from "axios";
 
 getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+export const getEmail = async () => {
+  const auth = await getAuth();
+  return new Promise((res, rej) => {
+    res(auth.currentUser);
+  });
+};
+
 export const signInUser = (email: string, password: string) => {
   const auth = getAuth();
   return new Promise((res, rej) => {
