@@ -2,6 +2,7 @@ import { GrLocation } from "react-icons/gr";
 import { AiOutlineStar, AiFillStar } from "react-icons/ai";
 import { useEffect, useState } from "react";
 import { Tags } from "@/enum/tags";
+import { addPetition } from "@/utils/petition";
 
 export interface InitiativeProps {
   imageSrc: string;
@@ -29,12 +30,52 @@ const InitiativeCard = ({
   physicalProducts,
 }: InitiativeProps) => {
   const [isStarred, setIsStarred] = useState(false);
+  const [votes, setVotes] = useState<number>(petitionVotes);
 
   useEffect(() => {
-    console.log(isStarred);
-    if (isStarred) {
+    let starredInitiatives: string[] | undefined = localStorage
+      .getItem("starredInitiatives")
+      ?.split(",");
+    if (starredInitiatives) {
+      if (starredInitiatives.includes(title)) {
+        setIsStarred(true);
+      }
     }
-  }, [isStarred]);
+  }, []);
+
+  const increasePetitionCount = () => {
+    addPetition(title, votes + 1);
+
+    let starredInitiatives: string[] | undefined = localStorage
+      .getItem("starredInitiatives")
+      ?.split(",");
+
+    if (starredInitiatives) {
+      starredInitiatives.push(title);
+      localStorage.setItem("starredInitiatives", starredInitiatives.join(","));
+    } else {
+      let starredInitiatives: string[] = [title];
+      localStorage.setItem("starredInitiatives", starredInitiatives.join(","));
+    }
+
+    setVotes((votes) => (votes += 1));
+  };
+
+  const decreasePetitionCount = () => {
+    addPetition(title, votes - 1);
+    console.log("decreasing");
+
+    let starredInitiatives: string[] | undefined = localStorage
+      .getItem("starredInitiatives")
+      ?.split(",");
+
+    if (starredInitiatives) {
+      starredInitiatives.splice(starredInitiatives.indexOf(title), 1);
+      localStorage.setItem("starredInitiatives", starredInitiatives.join(","));
+    }
+
+    setVotes((votes) => (votes -= 1));
+  };
 
   return (
     <div className="flex mb-8 justify-start items-start bg-secondary rounded-xl w-3/4">
@@ -52,16 +93,22 @@ const InitiativeCard = ({
           </div>
 
           <div className="flex justify-center items-center gap-1 mt-2">
-            <p>{petitionVotes}</p>
+            <p>{votes}</p>
             {isStarred ? (
               <AiFillStar
-                onClick={() => setIsStarred(!isStarred)}
+                onClick={() => {
+                  setIsStarred(!isStarred);
+                  decreasePetitionCount();
+                }}
                 fill="#0099CC"
                 className="text-2xl cursor-pointer"
               />
             ) : (
               <AiOutlineStar
-                onClick={() => setIsStarred(!isStarred)}
+                onClick={() => {
+                  setIsStarred(!isStarred);
+                  increasePetitionCount();
+                }}
                 fill="black"
                 className="text-2xl cursor-pointer"
               />

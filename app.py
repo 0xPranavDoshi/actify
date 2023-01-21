@@ -52,10 +52,10 @@ def recommendInitiatives(message):
 
 # recommendInitiatives("I am interested in protecting dogs, and other animals, like cats. I also like helping empower women from rural communities")
 
-def updatePetition(title):
-    initiativeCollection.update_one({"title":title},{"$inc":{"petitionVotes":1}})
-    petitionVotes = initiativeCollection.find_one({"title":title})["petitionVotes"]
-    return petitionVotes
+def addPetition(title, petitionCount):
+    initiativeCollection.update_one({"title":title},{"$set":{"petitionVotes":petitionCount}})
+    # petitionVotes = initiativeCollection.find_one({"title":title})["petitionVotes"]
+    return 0
 
 def getInitiatives():
     cursor = initiativeCollection.find({})
@@ -155,14 +155,16 @@ def generateDescription():
         except Exception as e: 
             print (e)
 
-@app.route('/updatePetitionVotes',methods = ["GET","POST"])
+@app.route('/addPetitionVote',methods = ["GET","POST"])
 @cross_origin()
-def updatePetitionVotes():
+def addPetitionVote():
     if request.method == "POST":
         try: 
             x = json.loads(request.data.decode("utf-8"))
             json_data = json.loads(x["body"])
-            petitionVotes = updatePetitionVotes(json_data["title"])
+            print(json_data['title'])
+            petitionVotes = addPetition(json_data["title"], json_data["petitionCount"])
+            print(petitionVotes)
             return ({"petitionVotes":petitionVotes})
         except Exception as e: 
             print (e)
