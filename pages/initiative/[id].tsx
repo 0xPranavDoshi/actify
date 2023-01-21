@@ -50,6 +50,8 @@ const Initiative = ({
         </div>
       </div>
 
+      <p className="w-3/4 text-left text-sm">#{initiative.tags.join(" #")}</p>
+
       <p className="text-xl mt-8 text-left w-3/4">{initiative.description}</p>
     </div>
   );

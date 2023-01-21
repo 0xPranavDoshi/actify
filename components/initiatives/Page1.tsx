@@ -1,5 +1,6 @@
 import { Tags, TagsArray } from "@/enum/tags";
 import { useRouter } from "next/router";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { HiArrowNarrowRight } from "react-icons/hi";
 
 const Page1 = ({
@@ -7,11 +8,15 @@ const Page1 = ({
   setTagsSelected,
   city,
   setCity,
+  location,
+  setLocation,
 }: {
   tagsSelected: Tags[];
   setTagsSelected: (arg: any) => void;
   city: string | undefined;
   setCity: (arg: any) => void;
+  location: string | undefined;
+  setLocation: (arg: any) => void;
 }) => {
   const router = useRouter();
 
@@ -45,6 +50,30 @@ const Page1 = ({
       </div>
 
       <h2 className="font-semibold text-3xl mt-8 mb-4">
+        Input the location the initiative is located in.
+      </h2>
+
+      <div className="text-text">
+        <GooglePlacesAutocomplete
+          selectProps={{
+            location,
+            onChange: setLocation,
+            styles: {
+              input: (provided: any) => ({
+                ...provided,
+              }),
+            },
+          }}
+          autocompletionRequest={{
+            componentRestrictions: {
+              country: ["in"],
+            },
+          }}
+          apiKey={process.env.NEXT_PUBLIC_MAPS_APIKEY}
+        />
+      </div>
+
+      <h2 className="font-semibold text-3xl mt-8 mb-4">
         Enter the city the initiative is based in.
       </h2>
 
@@ -56,7 +85,7 @@ const Page1 = ({
         className="bg-background border border-text rounded-lg px-4 py-2 w-full text-text"
       />
 
-      <div className="w-full flex justify-end mt-12 gap-2">
+      <div className="w-full flex justify-end mt-8 gap-2">
         <div
           onClick={() => {
             if (city && tagsSelected.length > 0) {

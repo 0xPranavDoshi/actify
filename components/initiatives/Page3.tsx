@@ -18,6 +18,7 @@ const Page3 = ({
   description,
   setDescription,
   city,
+  location,
   physicalNeeds,
   donationGoal,
   donationAmount,
@@ -28,6 +29,7 @@ const Page3 = ({
   description: string | undefined;
   setDescription: (arg: any) => void;
   city: string | undefined;
+  location: string | undefined;
   physicalNeeds: string[] | undefined;
   donationGoal: number | undefined;
   donationAmount: number | undefined;
@@ -157,7 +159,8 @@ const Page3 = ({
                     description: description,
                     donationGoal: donationGoal,
                     donationAmount: donationAmount,
-                    location: "Mumbai",
+                    location: location,
+                    city: city,
                     tags: tagsSelected,
                     petitionVotes: 0,
                     physicalProducts: physicalNeeds,

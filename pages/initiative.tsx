@@ -24,6 +24,7 @@ const CreateInitiative = () => {
 
   const [tagsSelected, setTagsSelected] = useState<Tags[]>([]);
   const [city, setCity] = useState<string>();
+  const [location, setLocation] = useState<string>();
 
   const [donationGoal, setDonationGoal] = useState<number>();
   const [donationAmount, setDonationAmount] = useState<number>();
@@ -43,6 +44,8 @@ const CreateInitiative = () => {
             setTagsSelected={setTagsSelected}
             city={city}
             setCity={setCity}
+            location={location}
+            setLocation={setLocation}
           />
         )}
 
@@ -64,6 +67,7 @@ const CreateInitiative = () => {
             description={description}
             setDescription={setDescription}
             city={city}
+            location={location}
             physicalNeeds={physicalNeeds}
             donationGoal={donationGoal}
             donationAmount={donationAmount}
