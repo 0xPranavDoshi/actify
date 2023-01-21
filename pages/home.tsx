@@ -1,5 +1,6 @@
 import InitiativeCard, { InitiativeProps } from "@/components/InitiativeCard";
 import Navbar from "@/components/Navbar";
+import { Tags } from "@/enum/tags";
 import { useState } from "react";
 
 const Dashboard = () => {
@@ -16,6 +17,7 @@ const Dashboard = () => {
         lat: 0,
         lng: 0,
       },
+      tags: [Tags.Food],
       city: "Bangalore",
       petitionVotes: 100,
       physicalProducts: ["Food", "Shelter"],
@@ -26,7 +28,7 @@ const Dashboard = () => {
     <div className="flex flex-col w-screen h-screen bg-background justify-start items-center">
       <Navbar />
 
-      <h1 className="text-center w-full text-4xl my-8">
+      <h1 className="text-center w-full text-4xl my-8 font-light">
         Discover Initiatives to Support
       </h1>
 

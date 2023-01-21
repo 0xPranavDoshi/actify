@@ -1,6 +1,7 @@
 import { GrLocation } from "react-icons/gr";
 import { AiOutlineStar, AiFillStar } from "react-icons/ai";
 import { useState } from "react";
+import { Tags } from "@/enum/tags";
 
 export interface InitiativeProps {
   imageSrc: string;
@@ -8,6 +9,7 @@ export interface InitiativeProps {
   description: string;
   donationGoal: string;
   donationAmount: string;
+  tags: Tags[];
   location: any;
   city: string;
   petitionVotes: number;
@@ -21,6 +23,7 @@ const InitiativeCard = ({
   donationGoal,
   donationAmount,
   location,
+  tags,
   city,
   petitionVotes,
   physicalProducts,
