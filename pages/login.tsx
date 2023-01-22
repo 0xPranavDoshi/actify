@@ -9,7 +9,8 @@ const Login = () => {
   const [password, setPassword] = useState<string>();
 
   return (
-    <div className="flex justify-center items-center w-screen h-screen bg-black">
+    <div className="flex justify-center items-center w-screen h-screen bg-background flex-col">
+      <h1 className="text-5xl font-light mb-8 text-accent">EcoElevate</h1>
       <div className="flex justify-center items-center w-[50vh] rounded-xl border border-gray-400 py-8 flex-col">
         <h1 className="text-4xl text-white text-center">Login</h1>
         <div className="flex flex-col w-3/4">
@@ -37,7 +38,7 @@ const Login = () => {
           />
           <button
             // type="submit"
-            className="bg-blue-500 text-white rounded-md p-2 mt-4"
+            className="bg-accent text-white rounded-md p-2 mt-4"
             onClick={async () => {
               if (password && email) {
                 try {

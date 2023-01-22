@@ -62,13 +62,22 @@ const Initiative = ({
               >
                 Supply
               </div>
+              <p className="mt-4">
+                <i>
+                  Recycling products conserves natural resources, reduces
+                  pollution, and diverts waste from landfills, making it a key
+                  aspect of environmental sustainability.
+                </i>
+              </p>
             </div>
           </div>
         </div>
 
         <p className="w-3/4 text-left text-sm">#{initiative.tags.join(" #")}</p>
 
-        <p className="text-xl mt-8 text-left w-3/4">{initiative.description}</p>
+        <p className="text-xl mt-8 text-left w-3/4 mb-8">
+          {initiative.description}
+        </p>
       </div>
       {supplyModal && (
         <ShipModal

@@ -71,10 +71,10 @@ const Dashboard = () => {
       <Navbar />
 
       <h1 className="text-center w-full text-4xl my-8 font-light">
-        Discover Initiatives to Support
+        Empowering Change, One Initiative at a Time
       </h1>
 
-      <div className="flex flex w-3/4 justify-start items-end gap-4 mb-8">
+      <div className="flex flex w-3/4 justify-start items-end gap-8 mb-8">
         <div className="flex flex-col w-[40%]">
           <p>Enter your location</p>
           <div className="text-text w-full">
@@ -125,7 +125,7 @@ const Dashboard = () => {
               setInitiatives(newInitiatives);
             }
           }}
-          className="px-6 py-2 bg-accent flex justify-center items-center rounded-lg cursor-pointer"
+          className="px-16 py-2 bg-accent flex justify-center items-center rounded-lg cursor-pointer"
         >
           Save
         </div>

@@ -16,11 +16,17 @@ import googlemaps
 import os
 from ast import literal_eval
 from dotenv import load_dotenv
+import numpy as np
+from sklearn.svm import SVR
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,r2_score
 
 load_dotenv()
 api_key = os.getenv('GOOGLE_APIKEY')
 gmaps = googlemaps.Client(key=api_key)  
-openai.api_key = "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"
+openai.api_key = os.getenv('GPT3_APIKEY')
 app = Flask(__name__)
 client = MongoClient('mongodb+srv://Actify:Act1fy@cluster0.u87uqzy.mongodb.net/test', tlsCAFile=certifi.where())
 db = client["Main"]
@@ -45,6 +51,83 @@ def locationCalculator(title):
     return returnArr
 
 def rankingFormula(location1,tags):
+    df = pd.read_csv('/Users/pranavdoshi/Programming/OakridgeHacks/actify/trainingData.csv')
+    X = df.iloc[:, :-1].values
+    y= df.iloc[:, -1].values
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.33, random_state=42)
+
+    svr_rbf = SVR(kernel="rbf", C=100, gamma=0.2, epsilon=0.1)
+    svr_rbf.fit(X_train, y_train)
+    predictions = svr_rbf.predict(X_test)
+    print('Model R2 Score: ',r2_score(y_test, predictions))
+    
+    cluster = initiativeCollection.find({})
+    titleArr = []
+    rankArr = []
+    rankPredictArr = []
+    documentArr = []
+    totalRankArr = []
+    for document in cluster: 
+        rank = 0
+
+        location2 = document["location"]["label"]
+        googleMapsData = gmaps.distance_matrix(location1,location2)['rows'][0]['elements'][0]
+        distance = googleMapsData["distance"]["value"]
+        rank += 100 * (2.72 ** (-distance/1000))
+    
+        duration = googleMapsData["duration"]["value"]
+        rank += 60 * (2.72 ** (-duration/60))
+        
+        votes = document["petitionVotes"]
+        rank += 0.25*votes
+
+        a = np.array(tags)
+        b = np.array(document["tags"])
+        ans = len(np.intersect1d(a, b))
+        rank += 15*(ans)
+
+        donationPercentage = document["donationAmount"]/document["donationGoal"]
+        rank+= (donationPercentage**2)/250 - (100*donationPercentage)/250 +12
+
+        titleArr.append(document["title"])
+        rankArr.append(rank)
+        documentArr.append(json_util.dumps(document))
+        
+        #predict Rank from ml model
+        print("Rank: ",rank)
+        rankPredict = svr_rbf.predict([[distance,duration,votes,ans,donationPercentage]])
+        rankPredictArr.append(rankPredict)
+        print("rankPredict: ",rankPredict)
+        totalRank = 0.75*rank + 0.25*rankPredict
+        totalRankArr.append(totalRank)
+    documentArr4 = [documentArr for _,documentArr in sorted(zip(totalRankArr,documentArr),reverse=True)]
+    documentArr2 = [documentArr for _,documentArr in sorted(zip(rankArr,documentArr),reverse=True)]
+    documentArr3 = [documentArr for _,documentArr in sorted(zip(rankPredictArr,documentArr),reverse=True)]
+    #documentArr2 = json_util.dumps(documentArr2)
+    #documentArr3 = json_util.dumps(documentArr3)
+    #print(documentArr2)
+    """for (a,b,c,d) in zip(rankArr,documentArr2,rankPredictArr,documentArr3):
+        b = json.loads(b)
+        d = json.loads(d)
+        print(a," ",b["title"]," ",c," ",d["title"])"""
+    return documentArr4
+print(rankingFormula("Adarsh Palm Retreat",['Sanctuary','Wildlife']))
+
+def createRank(location1,tags):
+    df = pd.read_csv('/Users/pranavdoshi/Programming/OakridgeHacks/actify/trainingData.csv')
+    X = df.iloc[:, :-1].values
+    y= df.iloc[:, -1].values
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.33, random_state=42)
+
+    svr_rbf = SVR(kernel="rbf", C=100, gamma=0.2, epsilon=0.1)
+    svr_rbf.fit(X_train, y_train)
+    predictions = svr_rbf.predict(X_test)
+    print('Model R2 Score: ',r2_score(y_test, predictions))
+    
     cluster = initiativeCollection.find({})
     titleArr = []
     rankArr = []
@@ -55,36 +138,38 @@ def rankingFormula(location1,tags):
         location2 = document["location"]["label"]
         googleMapsData = gmaps.distance_matrix(location1,location2)['rows'][0]['elements'][0]
         distance = googleMapsData["distance"]["value"]
-        print('distance:',distance)
-        rank_distance = ((distance/1000 + 1)**(-1))
-        # normalize the rank to a number between 0 and 1
-
-        print('distance weightage:', ((distance+1)**5))
-
+        # print('distance:',distance)
+        rank_distance = 0
+        rank_distance += 100 * (2.72 ** (-distance/1000))
+        
         duration = googleMapsData["duration"]["value"]
-        rank +=0*20 * (2.72**(-duration/(60*(10**14))))
-        rank_distance += rank
-        print('duration:', 20 * (2.72**(-duration/(60*(10**14)))))
-
+        rank_duration = 0
+        rank_duration += 60 * (2.72 ** (-duration/60))
+        
         votes = document["petitionVotes"]
-        rank += 0.25 * votes
+        rank += 0.25*votes
 
         a = np.array(tags)
         b = np.array(document["tags"])
-        print('tags array:', a, b)
+        # print('tags array:', a, b)
         ans = len(np.intersect1d(a, b))
-        print('tags:',ans)
-        rank += 1000*(ans**2)
+        # print('tags:',ans)
+        rank += 1000*(ans)
 
         donationPercentage = document["donationAmount"]/document["donationGoal"]
-        rank+= 0.05 * (donationPercentage**0.5)
+        rank+= 0.05 *(donationPercentage**0.5)
 
         titleArr.append(document["title"])
         rankArr.append(rank)
         documentArr.append(json_util.dumps(document))
-
+        
+        #predict Rank from ml model
+        #rankPredict = svr_rbf.predict(distance,duration,votes,ans,donationPercentage)
+    
     documentArr2 = [documentArr for _,documentArr in sorted(zip(rankArr,documentArr),reverse=True)]
+    # print(documentArr2)
     return documentArr2
+
 
 def getTagsfromMessage(message):
     response = openai.Completion.create(
@@ -101,7 +186,7 @@ def getTagsfromMessage(message):
     # initTag = tags[0].split('Key Words: ')[1]
     # tags[0] = initTag
 
-    print('prinasda',tags)
+    # print('prinasda',tags)
     for i in range(0,len(tags)): 
         if tags[i][:2] == "\n": 
             tags[i] = tags[i][3:]
@@ -169,9 +254,9 @@ def insertAccount(name,email):
     inserting = orgCollection.insert_one(insertDict)
 
 def insertInitiative(name,email,title,alias,description,donationGoal,donationAmount,location,city,tags,petitionVotes,physicalProducts,image,website):
-    print(name)
+    # print(name)
     insertDict = {"name":name,"email":email,"title":title,"alias":alias,"description":description,"donationGoal":donationGoal,"donationAmount":donationAmount,"location":location,"city":city,"tags":tags,"petitionVotes":petitionVotes,"physicalProducts":physicalProducts,"image":image,"website":website}
-    print(insertDict)
+    # print(insertDict)
     initiativeCollection.insert_one(insertDict)
 
 
@@ -200,7 +285,7 @@ def signUp():
             json_data = json.loads(x['body'])
 
             insertAccount(json_data["name"],json_data["email"])
-            print ("Account Added")
+            # print ("Account Added")
 
         except Exception as e:
             print(e)
@@ -272,7 +357,7 @@ def generateDescription():
             x = json.loads(request.data.decode("utf-8"))
             # print('x', json_data)
             json_data = json.loads(x["body"])
-            print('title: ',json_data['title'], 'city: ',json_data['city'], 'needs: ',json_data['needs'])
+            # print('title: ',json_data['title'], 'city: ',json_data['city'], 'needs: ',json_data['needs'])
             to_return = createDescription(json_data["title"],json_data["city"],json_data["needs"])
             print(to_return)
             return ({"description": to_return })
@@ -286,9 +371,9 @@ def addPetitionVote():
         try: 
             x = json.loads(request.data.decode("utf-8"))
             json_data = json.loads(x["body"])
-            print(json_data['title'])
+            # print(json_data['title'])
             petitionVotes = addPetition(json_data["title"], json_data["petitionCount"])
-            print(petitionVotes)
+            # print(petitionVotes)
             return ({"petitionVotes":petitionVotes})
         except Exception as e: 
             print (e)
@@ -301,15 +386,29 @@ def getRankedList():
             x = json.loads(request.data.decode("utf-8"))
             json_data = json.loads(x["body"])
             tags = getTagsfromMessage(json_data["message"])
-            print("tags",tags)
+            # print("tags",tags)
             print(json_data["location"])
             documentsRanked = rankingFormula(json_data["location"],tags)
+
             # print(documentsRanked)
             return (documentsRanked)
 
         except Exception as e: 
             print (e)
 
+@app.route('/getDistanceDuration',methods = ["GET","POST"])
+@cross_origin()
+def getDistanceDuration():
+    if request.method == "POST":
+        try: 
+            x = json.loads(request.data.decode("utf-8"))
+            json_data = json.loads(x["body"])
+            googleMapsData = gmaps.distance_matrix(json_data["location1"],json_data["location2"])['rows'][0]['elements'][0]
+            distance = googleMapsData["distance"]["text"]
+            duration = googleMapsData["duration"]["text"]
+            return ({"distance":distance,"duration":duration})
+        except Exception as e: 
+            print (e)
 
 if __name__ == '__main__':
     app.run()

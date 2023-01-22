@@ -15,12 +15,42 @@ const ShipModal = ({
 
   const [success, setSuccess] = useState(false);
 
+  const [distance, setDistance] = useState();
+  const [duration, setDuration] = useState();
+
   useEffect(() => {
     console.log(needsSelected);
   }, [needsSelected]);
 
   const userLocation = localStorage.getItem("location");
   const url = `https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=${process.env.NEXT_PUBLIC_MAPS_APIKEY}&path=color:0xff0000ff|weight:5|${userLocation}|${initiativeLocation}&markers=color:blue%7Clabel:S%7C${userLocation}&markers=color:red%7Clabel:D%7C${initiativeLocation}}`;
+
+  useEffect(() => {
+    fetchMetadata();
+  }, []);
+
+  const fetchMetadata = async () => {
+    const url = "http://127.0.0.1:5000/getDistanceDuration";
+
+    const body = {
+      location1: userLocation,
+      location2: initiativeLocation,
+    };
+
+    const res = await axios.post(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.data;
+    console.log(data);
+
+    if (data) {
+      setDistance(data.distance);
+      setDuration(data.duration);
+    }
+  };
 
   return (
     <div className="absolute top-0 left-0 flex justify-center items-center w-full h-full">
@@ -42,6 +72,15 @@ const ShipModal = ({
           <>
             <h1 className="text-4xl mb-4 font-light">Shipment Info</h1>
             <img src={url} alt="" />
+            <div className="flex gap-4 mt-2">
+              <p>
+                <b>Distance:</b> {distance}
+              </p>
+              <p>
+                <b>Duration:</b> {duration}
+              </p>
+            </div>
+
             <p className="mt-8 w-full text-left mb-1">
               Select the physical needs that you are shipping:
             </p>

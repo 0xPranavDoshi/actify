@@ -9,7 +9,7 @@ const Navbar = () => {
         onClick={() => router.push("/home")}
         className="cursor-pointer font-semibold text-4xl text-accent"
       >
-        Actify
+        EcoElevate
       </h3>
       <div className="flex justify-center items-center gap-4">
         <a href="/home" className="cursor-pointer text-text">
